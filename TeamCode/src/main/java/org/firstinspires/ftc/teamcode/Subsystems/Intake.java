@@ -28,12 +28,10 @@ public class Intake {
 
     public Intake(@NonNull HardwareMap hardwareMap){
         this.intake = hardwareMap.get(DcMotorEx.class, "intake");
-
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void intake() {
-        intake.setPower(0.9);
+        intake.setPower(1);
     }
 
     public void outtake(){

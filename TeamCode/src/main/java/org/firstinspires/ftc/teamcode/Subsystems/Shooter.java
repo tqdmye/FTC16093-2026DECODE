@@ -1,50 +1,62 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
+import com.arcrobotics.ftclib.command.InstantCommand;
+import com.arcrobotics.ftclib.command.SequentialCommandGroup;
+import com.arcrobotics.ftclib.command.WaitCommand;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Subsystems.Constants.MotorConstants;
 
 public class Shooter {
-    public DcMotorEx shooterDown, shooterUp, preShooter;
+    public DcMotorEx shooterLeft, shooterRight, preShooter;
+    public Servo preLimit, hood;
 
     public Shooter(HardwareMap hardwareMap) {
-        this.shooterDown = hardwareMap.get(DcMotorEx.class, "shooterDown");
-        this.shooterUp = hardwareMap.get(DcMotorEx.class, "shooterUp");
+        this.shooterLeft = hardwareMap.get(DcMotorEx.class, "shooterLeft");
+        this.shooterRight = hardwareMap.get(DcMotorEx.class, "shooterRight");
         this.preShooter = hardwareMap.get(DcMotorEx.class, "preShooter");
+        this.preLimit = hardwareMap.get(Servo.class, "preLimit");
+        this.hood = hardwareMap.get(Servo.class, "hood");
 
-        shooterDown.setDirection(DcMotorSimple.Direction.REVERSE);
-        shooterUp.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooterLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        preShooter.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        shooterDown.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        shooterUp.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        preShooter.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        shooterLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        shooterRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        preShooter.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
-        shooterDown.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooterUp.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooterDown.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooterUp.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooterLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shooterRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        shooterUp.setVelocityPIDFCoefficients(MotorConstants.SHOOTER_P.value, MotorConstants.SHOOTER_I.value, MotorConstants.SHOOTER_D.value, MotorConstants.SHOOTER_F.value);
-        shooterDown.setVelocityPIDFCoefficients(MotorConstants.SHOOTER_P.value, MotorConstants.SHOOTER_I.value, MotorConstants.SHOOTER_D.value, MotorConstants.SHOOTER_F.value);
+        shooterRight.setVelocityPIDFCoefficients(MotorConstants.SHOOTER_P.value, MotorConstants.SHOOTER_I.value, MotorConstants.SHOOTER_D.value, MotorConstants.SHOOTER_F.value);
+        shooterLeft.setVelocityPIDFCoefficients(MotorConstants.SHOOTER_P.value, MotorConstants.SHOOTER_I.value, MotorConstants.SHOOTER_D.value, MotorConstants.SHOOTER_F.value);
     }
 
     public void accelerate_mid(){
-        shooterDown.setVelocity(MotorConstants.SHOOTER_MID_VELOCITY.value);
-        shooterUp.setVelocity(MotorConstants.SHOOTER_MID_VELOCITY.value);
+        shooterLeft.setVelocity(MotorConstants.SHOOTER_MID_VELOCITY.value);
+        shooterRight.setVelocity(MotorConstants.SHOOTER_MID_VELOCITY.value);
     }
     public void accelerate_slow(){
-        shooterDown.setVelocity(MotorConstants.SHOOTER_SLOW_VELOCITY.value);
-        shooterUp.setVelocity(MotorConstants.SHOOTER_SLOW_VELOCITY.value);
+        shooterLeft.setVelocity(MotorConstants.SHOOTER_SLOW_VELOCITY.value);
+        shooterRight.setVelocity(MotorConstants.SHOOTER_SLOW_VELOCITY.value);
+        hood.setPosition(0.85);
     }
     public void accelerate_fast(){
-        shooterDown.setVelocity(MotorConstants.SHOOTER_FAST_VELOCITY.value);
-        shooterUp.setVelocity(MotorConstants.SHOOTER_FAST_VELOCITY.value);
+        shooterLeft.setVelocity(MotorConstants.SHOOTER_FAST_VELOCITY.value);
+        shooterRight.setVelocity(MotorConstants.SHOOTER_FAST_VELOCITY.value);
+        hood.setPosition(0.06);
     }
     public void shoot(){
-        preShooter.setPower(0.7);
+        preLimit.setPosition(0.76);
+//        new WaitCommand(5000);
+        preShooter.setPower(1);
     }
 
     public void outtake(){
@@ -52,16 +64,22 @@ public class Shooter {
     }
 
     public void emergency(){
-        shooterDown.setPower(-1);
-        shooterUp.setPower(-1);
+        shooterLeft.setPower(-1);
+        shooterRight.setPower(-1);
     }
 
     public void init(){
-        preShooter.setPower(-0.08);
+        preLimit.setPosition(0.42);
+        new WaitCommand(5000);
+        preShooter.setPower(0);
     }
 
     public void stopAccelerate(){
-        shooterDown.setPower(0);
-        shooterUp.setPower(0);
+        shooterLeft.setPower(0);
+        shooterRight.setPower(0);
+    }
+
+    public void intakeBall(){
+        preShooter.setPower(1);
     }
 }

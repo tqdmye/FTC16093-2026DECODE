@@ -101,7 +101,7 @@ public class NewMecanumDrive extends MecanumDrive {
         batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         odo = hardwareMap.get(GoBildaPinpointDriver.class,"pinpoint");
-        odo.setOffsets(144,44);
+        odo.setOffsets(99,99);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.recalibrateIMU();
 
@@ -128,10 +128,10 @@ public class NewMecanumDrive extends MecanumDrive {
             setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, MOTOR_VELO_PID);
         }
 
-        rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
         rightRear.setDirection(DcMotorSimple.Direction.FORWARD);
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftRear.setDirection(DcMotorSimple.Direction.FORWARD);
+        leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
+        leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
 
         List<Integer> lastTrackingEncPositions = new ArrayList<>();
         List<Integer> lastTrackingEncVels = new ArrayList<>();
@@ -314,7 +314,7 @@ public class NewMecanumDrive extends MecanumDrive {
             rightFront.setPower(0);
             return;
         }
-        
+
         leftFront.setPower(powers[0]);
         leftRear.setPower(powers[1]);
         rightRear.setPower(powers[2]);

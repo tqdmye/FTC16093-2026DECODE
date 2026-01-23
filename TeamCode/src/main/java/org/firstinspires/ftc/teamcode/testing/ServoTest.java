@@ -19,14 +19,14 @@ public class ServoTest extends LinearOpMode {
     public static boolean reverse = false;
     public static double servo_pos = 0.5;
 
-    public static String input_name = "claw_in";
+//    public static String input_name = "claw_in";
     public static String servo_name = "claw";
 
     @Override
     public void runOpMode() {
 
         Servo servo0 = hardwareMap.get(Servo.class, servo_name);
-        AnalogInput input = hardwareMap.get(AnalogInput.class, input_name);
+//        AnalogInput input = hardwareMap.get(AnalogInput.class, input_name);
 
         if (reverse) {
             servo0.setDirection(Servo.Direction.REVERSE);
@@ -37,9 +37,9 @@ public class ServoTest extends LinearOpMode {
         while (opModeIsActive()) {
             if (!read_only) servo0.setPosition(servo_pos);
             telemetry_M.addData(servo_name, servo0.getPosition());
-            telemetry_M.addData(input_name, input.getVoltage());
-            telemetry_M.addData("max v", input.getMaxVoltage());
-            telemetry_M.addData("Axon degree", input.getVoltage()/3.3*360);
+//            telemetry_M.addData(input_name, input.getVoltage());
+//            telemetry_M.addData("max v", input.getMaxVoltage());
+//            telemetry_M.addData("Axon degree", input.getVoltage()/3.3*360);
             telemetry_M.update();
         }
     }
