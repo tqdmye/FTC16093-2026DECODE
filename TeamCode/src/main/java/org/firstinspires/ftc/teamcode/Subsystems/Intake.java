@@ -31,7 +31,7 @@ public class Intake {
     }
 
     public void intake() {
-        intake.setPower(1);
+        intake.setPower(0.8);
     }
 
     public void outtake(){

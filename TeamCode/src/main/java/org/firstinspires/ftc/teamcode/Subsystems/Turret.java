@@ -26,14 +26,17 @@ public class Turret {
     /* ================= 目标参数（世界坐标，inch / deg） ================= */
 
     // 目标中心位置（inch）
-    private static final double TARGET_X = 29.8859;
-    private static final double TARGET_Y = -27.9487;
+//    private static final double TARGET_X = 29.8859;
+//    private static final double TARGET_Y = -27.9487;
+
+    private static final double TARGET_X = 50.9487;
+    private static final double TARGET_Y = 50.8859;
 
     // 目标朝向（deg）
-    private static final double TARGET_HEADING_DEG = 300.0;
+    private static final double TARGET_HEADING_DEG = 30.0;
 
     // 目标“面”法向参考距离（inch）
-    private static final double FACE_OFFSET = 0.0;
+    private static final double FACE_OFFSET = 20.0;
 
     /* ======================================================= */
 

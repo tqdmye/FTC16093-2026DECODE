@@ -42,6 +42,7 @@ public class Shooter {
     public void accelerate_mid(){
         shooterLeft.setVelocity(MotorConstants.SHOOTER_MID_VELOCITY.value);
         shooterRight.setVelocity(MotorConstants.SHOOTER_MID_VELOCITY.value);
+        hood.setPosition(0.85);
     }
     public void accelerate_slow(){
         shooterLeft.setVelocity(MotorConstants.SHOOTER_SLOW_VELOCITY.value);
@@ -80,6 +81,6 @@ public class Shooter {
     }
 
     public void intakeBall(){
-        preShooter.setPower(1);
+        preShooter.setPower(0.7);
     }
 }

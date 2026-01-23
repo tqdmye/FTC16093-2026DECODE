@@ -53,5 +53,7 @@ public class FConstants {
 
         FollowerConstants.automaticHoldEnd = true;
         FollowerConstants.useVoltageCompensationInAuto = true;
+
+        FollowerConstants.useBrakeModeInTeleOp = true;
     }
 }

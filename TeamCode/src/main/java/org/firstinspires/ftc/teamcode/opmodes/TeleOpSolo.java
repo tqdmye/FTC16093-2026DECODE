@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Subsystems.Turret;
 import org.firstinspires.ftc.teamcode.Subsystems.driving.NewMecanumDrive;
 import org.firstinspires.ftc.teamcode.commands.TeleOpDriveCommand;
+import org.firstinspires.ftc.teamcode.commands.TeleOpDriveCommandPP;
 import org.firstinspires.ftc.teamcode.utils.ButtonEx;
 import org.firstinspires.ftc.teamcode.utils.FollowerEx;
 
@@ -34,8 +35,8 @@ import pedroPathing.constants.LConstants;
 @TeleOp(group = "0-competition", name = "TeleOp Solo")
 public class TeleOpSolo extends CommandOpModeEx {
     GamepadEx gamepadEx1, gamepadEx2;
-    NewMecanumDrive driveCore;
-//    Follower follower;
+//    NewMecanumDrive driveCore;
+    Follower follower;
     PoseUpdater poseUpdater;
     Shooter shooter;
     Intake intake;
@@ -50,33 +51,33 @@ public class TeleOpSolo extends CommandOpModeEx {
         gamepadEx1 = new GamepadEx(gamepad1);
         gamepadEx2 = new GamepadEx(gamepad2);
 
-//        follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-//        follower.setPose(new Pose(0,0,0));
-//        follower.update();
+        follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
+        follower.setStartingPose(new Pose(0,0, Math.toRadians(90)));
+        follower.update();
+        follower.startTeleopDrive();
 
-        driveCore = new NewMecanumDrive(hardwareMap);
-        driveCore.resetOdo();
-        driveCore.init();
-        driveCore.setPoseEstimate(new Pose2d(0, 0, Math.toRadians(0)));
-        driveCore.resetHeading();
+//        driveCore = new NewMecanumDrive(hardwareMap);
+//        driveCore.resetOdo();
+//        driveCore.init();
+//        driveCore.setPoseEstimate(new Pose2d(0, 0, Math.toRadians(0)));
+//        driveCore.resetHeading();
 //        driveCore.yawHeading += 90; //如果specimen自动接solo手动就把这行去掉
 //        driveCore.yawHeading %= 360;    //如果specimen自动接solo手动就把这行去掉
 //        driveCore.resetPose(new Pose2d(0,0));
-        driveCore.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        driveCore.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //        driveCore.initialUpdate();
 
         Constants.setConstants(FConstants.class, LConstants.class);
         poseUpdater = new PoseUpdater(hardwareMap, FConstants.class, LConstants.class);
-        poseUpdater.setPose(new Pose(0, 0, 0));
+        poseUpdater.setStartingPose(new Pose(0,0, Math.toRadians(90)));
 
 
-        TeleOpDriveCommand driveCommand = new TeleOpDriveCommand(driveCore,
+        TeleOpDriveCommandPP driveCommand = new TeleOpDriveCommandPP(follower,
                 ()->gamepadEx1.getLeftX(),
                 ()->gamepadEx1.getLeftY(),
                 ()->gamepadEx1.getRightX(),
                 ()->(gamepadEx1.getButton(GamepadKeys.Button.START) && !gamepad1.touchpad),
-                ()->(gamepadEx1.getButton(GamepadKeys.Button.RIGHT_BUMPER)),
-                isFieldCentric);
+                ()->isFieldCentric);
 
         intake = new Intake(hardwareMap);
 //        frontArm.setLED(false);
@@ -115,7 +116,8 @@ public class TeleOpSolo extends CommandOpModeEx {
         new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.LEFT_BUMPER))
                 .whenPressed(new SequentialCommandGroup(
                         new InstantCommand(()->intake.intake()),
-                        new InstantCommand(()->shooter.intakeBall())
+                        new InstantCommand(()->shooter.intakeBall()),
+                        new InstantCommand(()->shooter.accelerate_slow())
                 ))
                 .whenReleased(new SequentialCommandGroup(
                         new InstantCommand(()->intake.init()),
@@ -130,12 +132,12 @@ public class TeleOpSolo extends CommandOpModeEx {
         new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.RIGHT_BUMPER))
                 .whenPressed(new SequentialCommandGroup(
                         new InstantCommand(()->shooter.preLimit.setPosition(0.75)),
-                        new WaitCommand(800),
+                        new WaitCommand(500),
                         new InstantCommand(()->shooter.preShooter.setPower(1)),
                         new InstantCommand(()->intake.intake())))
                 .whenReleased(new SequentialCommandGroup(
                         new InstantCommand(()->shooter.preLimit.setPosition(0.42)),
-                        new WaitCommand(800),
+                        new WaitCommand(500),
                         new InstantCommand(()->shooter.preShooter.setPower(0)),
                         new InstantCommand(()->intake.init())));
 
@@ -159,10 +161,10 @@ public class TeleOpSolo extends CommandOpModeEx {
     @Override
     public void run(){
         CommandScheduler.getInstance().run();
-        driveCore.update();
+//        driveCore.update();
 //        turret.lock(new Pose(driveCore.getPoseEstimate().getX(), driveCore.getPoseEstimate().getY(), driveCore.getHeading()));
 
-//        follower.update();
+        follower.update();
 //        turret.lock(followerEx.getPose());
 
         poseUpdater.update();
