@@ -3,10 +3,10 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.ParallelCommandGroup;
+import com.arcrobotics.ftclib.command.RepeatCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
@@ -14,17 +14,12 @@ import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.localization.PoseUpdater;
-import com.pedropathing.util.Constants;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Subsystems.Turret;
-import org.firstinspires.ftc.teamcode.Subsystems.driving.NewMecanumDrive;
-import org.firstinspires.ftc.teamcode.commands.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOpDriveCommandPP;
 import org.firstinspires.ftc.teamcode.utils.ButtonEx;
-import org.firstinspires.ftc.teamcode.utils.FollowerEx;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -32,8 +27,8 @@ import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
 
-@TeleOp(group = "0-competition", name = "TeleOp Solo")
-public class TeleOpSolo extends CommandOpModeEx {
+@TeleOp(group = "0-competition", name = "TeleOp Solo Red")
+public class TeleOpSoloRed extends CommandOpModeEx {
     GamepadEx gamepadEx1, gamepadEx2;
 //    NewMecanumDrive driveCore;
     Follower follower;
@@ -52,7 +47,7 @@ public class TeleOpSolo extends CommandOpModeEx {
         gamepadEx2 = new GamepadEx(gamepad2);
 
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-        follower.setStartingPose(new Pose(0,0, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(64,-64, Math.toRadians(90)));
         follower.update();
         follower.startTeleopDrive();
 
@@ -67,9 +62,9 @@ public class TeleOpSolo extends CommandOpModeEx {
 //        driveCore.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //        driveCore.initialUpdate();
 
-        Constants.setConstants(FConstants.class, LConstants.class);
-        poseUpdater = new PoseUpdater(hardwareMap, FConstants.class, LConstants.class);
-        poseUpdater.setStartingPose(new Pose(0,0, Math.toRadians(90)));
+//        Constants.setConstants(FConstants.class, LConstants.class);
+//        poseUpdater = new PoseUpdater(hardwareMap, FConstants.class, LConstants.class);
+//        poseUpdater.setStartingPose(new Pose(0,0, Math.toRadians(90)));
 
 
         TeleOpDriveCommandPP driveCommand = new TeleOpDriveCommandPP(follower,
@@ -127,7 +122,7 @@ public class TeleOpSolo extends CommandOpModeEx {
                 .whenPressed(new InstantCommand(()->shooter.accelerate_mid()));
 
         new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.RIGHT_STICK_BUTTON))
-                .whenPressed(new InstantCommand(()->shooter.accelerate_fast()));
+                .whenReleased(new RepeatCommand(new InstantCommand(()->shooter.accelerate_fast())),true);
 
         new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.RIGHT_BUMPER))
                 .whenPressed(new SequentialCommandGroup(
@@ -156,6 +151,18 @@ public class TeleOpSolo extends CommandOpModeEx {
         new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.DPAD_UP))
                 .whenPressed(new InstantCommand(()->shooter.stopAccelerate()));
 
+        new ButtonEx(()->gamepadEx2.getButton(GamepadKeys.Button.DPAD_RIGHT)) //远射复位
+                .whenPressed(new InstantCommand(()->follower.setPose(new Pose(0,-50, follower.getPose().getHeading()))));
+
+        new ButtonEx(()->gamepadEx2.getButton(GamepadKeys.Button.X)) //开门复位
+                .whenPressed(new InstantCommand(()->follower.setPose(new Pose(58,0, follower.getPose().getHeading()))));
+
+        new ButtonEx(()->gamepadEx2.getButton(GamepadKeys.Button.DPAD_DOWN)) //己方loading zone复位
+                .whenPressed(new InstantCommand(()->follower.setPose(new Pose(-60,-60, follower.getPose().getHeading()))));
+
+        new ButtonEx(()->gamepadEx2.getButton(GamepadKeys.Button.DPAD_UP)) //敌方loading zone复位
+                .whenPressed(new InstantCommand(()->follower.setPose(new Pose(60,60, follower.getPose().getHeading()))));
+
     }
 
     @Override
@@ -165,10 +172,10 @@ public class TeleOpSolo extends CommandOpModeEx {
 //        turret.lock(new Pose(driveCore.getPoseEstimate().getX(), driveCore.getPoseEstimate().getY(), driveCore.getHeading()));
 
         follower.update();
-//        turret.lock(followerEx.getPose());
+        turret.lockRed(follower.getPose());
 
-        poseUpdater.update();
-        turret.lock(new Pose(poseUpdater.getPose().getX(), poseUpdater.getPose().getY(), poseUpdater.getPose().getHeading()));
+//        poseUpdater.update();
+//        turret.lock(new Pose(poseUpdater.getPose().getX(), poseUpdater.getPose().getY(), poseUpdater.getPose().getHeading()));
 
 
         telemetry.addData("shooter velocity", shooter.shooterLeft.getVelocity());
@@ -178,13 +185,13 @@ public class TeleOpSolo extends CommandOpModeEx {
 //        telemetry.addData("Current Pose Y", driveCore.getPoseEstimate().getY());
 //        telemetry.addData("Current Pose Heading", driveCore.getHeading());
 
-//        telemetry.addData("Current Pose X", follower.getPose().getX());
-//        telemetry.addData("Current Pose Y", follower.getPose().getY());
-//        telemetry.addData("Current Pose Heading", follower.getPose().getHeading());
+        telemetry.addData("Current Pose X", follower.getPose().getX());
+        telemetry.addData("Current Pose Y", follower.getPose().getY());
+        telemetry.addData("Current Pose Heading", follower.getPose().getHeading());
 
-        telemetry.addData("Current Pose X", poseUpdater.getPose().getX());
-        telemetry.addData("Current Pose Y", poseUpdater.getPose().getY());
-        telemetry.addData("Current Pose Heading", Math.toDegrees(poseUpdater.getPose().getHeading()));
+//        telemetry.addData("Current Pose X", poseUpdater.getPose().getX());
+//        telemetry.addData("Current Pose Y", poseUpdater.getPose().getY());
+//        telemetry.addData("Current Pose Heading", Math.toDegrees(poseUpdater.getPose().getHeading()));
 
 
         telemetry.update();

@@ -17,7 +17,7 @@ public class TestLocalizer extends LinearOpMode {
     NewMecanumDrive drive;
 
     private final Telemetry telemetry_M = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-    public static  double x = -15, y = 62.3, heading = 90;
+    public static  double x = 0, y = 0, heading = 90;
     public static double targetX = -15, targetY = 62.3, targetHeading = 90;
     private static Pose2d startPos;
     @Override
@@ -34,8 +34,11 @@ public class TestLocalizer extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()){
-            double standard_xPos = drive.getPoseEstimate().getX();
-            double standard_yPos = drive.getPoseEstimate().getY();
+//            double standard_xPos = drive.getPoseEstimate().getX();
+//            double standard_yPos = drive.getPoseEstimate().getY();
+
+            double standard_xPos = drive.odo.getEncoderX();
+            double standard_yPos = drive.odo.getEncoderY();
 
             if(gamepad1.a){
                 drive.initSimpleMove(new Pose2d(targetX,targetY,Math.toRadians(targetHeading)));
@@ -52,6 +55,7 @@ public class TestLocalizer extends LinearOpMode {
             telemetry_M.addData("Current Heading: ", drive.getPoseEstimate().getHeading());
 
             telemetry.update();
+            drive.update();
         }
     }
 }

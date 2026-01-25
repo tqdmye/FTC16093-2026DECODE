@@ -52,7 +52,12 @@ public class Shooter {
     public void accelerate_fast(){
         shooterLeft.setVelocity(MotorConstants.SHOOTER_FAST_VELOCITY.value);
         shooterRight.setVelocity(MotorConstants.SHOOTER_FAST_VELOCITY.value);
-        hood.setPosition(0.06);
+        if(MotorConstants.SHOOTER_FAST_VELOCITY.value-shooterLeft.getVelocity()>200){
+            hood.setPosition(0.05);
+        }
+        else{
+            hood.setPosition(0.04);
+        }
     }
     public void shoot(){
         preLimit.setPosition(0.76);
