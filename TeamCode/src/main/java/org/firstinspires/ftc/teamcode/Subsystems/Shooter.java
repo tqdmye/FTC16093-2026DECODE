@@ -12,6 +12,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.Subsystems.Constants.MotorConstants;
 
 public class Shooter {
+    public enum State {
+        FAST,
+        MID,
+        SLOW
+    }
+    public State state = State.SLOW;
+
     public DcMotorEx shooterLeft, shooterRight, preShooter;
     public Servo preLimit, hood;
 

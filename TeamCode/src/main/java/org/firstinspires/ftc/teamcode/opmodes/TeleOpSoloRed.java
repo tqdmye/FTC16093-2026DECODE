@@ -15,9 +15,11 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.localization.PoseUpdater;
 
+import org.firstinspires.ftc.teamcode.Subsystems.Constants.ServoConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Subsystems.Turret;
+import org.firstinspires.ftc.teamcode.commands.RobotFSMCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOpDriveCommandPP;
 import org.firstinspires.ftc.teamcode.utils.ButtonEx;
 
@@ -30,8 +32,8 @@ import pedroPathing.constants.LConstants;
 @TeleOp(group = "0-competition", name = "TeleOp Solo Red")
 public class TeleOpSoloRed extends CommandOpModeEx {
     GamepadEx gamepadEx1, gamepadEx2;
-//    NewMecanumDrive driveCore;
     Follower follower;
+    RobotFSMCommand robotFSMCommand;
     PoseUpdater poseUpdater;
     Shooter shooter;
     Intake intake;
@@ -51,22 +53,6 @@ public class TeleOpSoloRed extends CommandOpModeEx {
         follower.update();
         follower.startTeleopDrive();
 
-//        driveCore = new NewMecanumDrive(hardwareMap);
-//        driveCore.resetOdo();
-//        driveCore.init();
-//        driveCore.setPoseEstimate(new Pose2d(0, 0, Math.toRadians(0)));
-//        driveCore.resetHeading();
-//        driveCore.yawHeading += 90; //如果specimen自动接solo手动就把这行去掉
-//        driveCore.yawHeading %= 360;    //如果specimen自动接solo手动就把这行去掉
-//        driveCore.resetPose(new Pose2d(0,0));
-//        driveCore.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        driveCore.initialUpdate();
-
-//        Constants.setConstants(FConstants.class, LConstants.class);
-//        poseUpdater = new PoseUpdater(hardwareMap, FConstants.class, LConstants.class);
-//        poseUpdater.setStartingPose(new Pose(0,0, Math.toRadians(90)));
-
-
         TeleOpDriveCommandPP driveCommand = new TeleOpDriveCommandPP(follower,
                 ()->gamepadEx1.getLeftX(),
                 ()->gamepadEx1.getLeftY(),
@@ -75,12 +61,18 @@ public class TeleOpSoloRed extends CommandOpModeEx {
                 ()->isFieldCentric);
 
         intake = new Intake(hardwareMap);
-//        frontArm.setLED(false);
         shooter = new Shooter(hardwareMap);
         turret = new Turret(hardwareMap);
 
 
+        robotFSMCommand = new RobotFSMCommand(
+                shooter,
+                intake
+        );
+
+        /* ---------- Schedule ---------- */
         CommandScheduler.getInstance().schedule(driveCommand);
+        CommandScheduler.getInstance().schedule(robotFSMCommand);
 
         //timers
         new ButtonEx(()->getRuntime()>30).whenPressed(()->gamepad1.rumble(500));
@@ -93,17 +85,11 @@ public class TeleOpSoloRed extends CommandOpModeEx {
     public void onStart() {
         resetRuntime();
         shooter.accelerate_slow();
-        shooter.preLimit.setPosition(0.42);
-//        follower.startTeleopDrive();
+        shooter.preLimit.setPosition(ServoConstants.PRELIMIT_DNT_SHOOT.value);
     }
 
     @Override
     public void functionalButtons() {
-
-        //leftBumper -- intake
-        //rightTrigger -- Shooter
-        //leftTrigger -- preShooter
-        //a -- preShooter & intake 反转
 
         new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.BACK))
                 .whenPressed(new InstantCommand(()->isFieldCentric=!isFieldCentric));
@@ -111,29 +97,32 @@ public class TeleOpSoloRed extends CommandOpModeEx {
         new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.LEFT_BUMPER))
                 .whenPressed(new SequentialCommandGroup(
                         new InstantCommand(()->intake.intake()),
-                        new InstantCommand(()->shooter.intakeBall()),
-                        new InstantCommand(()->shooter.accelerate_slow())
+                        new InstantCommand(()->shooter.intakeBall())
                 ))
                 .whenReleased(new SequentialCommandGroup(
                         new InstantCommand(()->intake.init()),
                         new InstantCommand(()->shooter.init())));
 
+        new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.X))
+                .whenPressed(new InstantCommand(()->shooter.state = Shooter.State.SLOW));
+
         new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.LEFT_STICK_BUTTON))
-                .whenPressed(new InstantCommand(()->shooter.accelerate_mid()));
+                .whenPressed(new InstantCommand(()->shooter.state = Shooter.State.MID));
 
         new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.RIGHT_STICK_BUTTON))
-                .whenReleased(new RepeatCommand(new InstantCommand(()->shooter.accelerate_fast())),true);
+                .whenReleased(new InstantCommand(()->shooter.state = Shooter.State.FAST));
 
         new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.RIGHT_BUMPER))
                 .whenPressed(new SequentialCommandGroup(
-                        new InstantCommand(()->shooter.preLimit.setPosition(0.75)),
-                        new WaitCommand(500),
+                        new InstantCommand(()->shooter.preLimit.setPosition(ServoConstants.PRELIMIT_SHOOT.value)),
+                        new WaitCommand(400),
                         new InstantCommand(()->shooter.preShooter.setPower(1)),
                         new InstantCommand(()->intake.intake())))
                 .whenReleased(new SequentialCommandGroup(
-                        new InstantCommand(()->shooter.preLimit.setPosition(0.42)),
-                        new WaitCommand(500),
+                        new WaitCommand(150),
                         new InstantCommand(()->shooter.preShooter.setPower(0)),
+                        new WaitCommand(200),
+                        new InstantCommand(()->shooter.preLimit.setPosition(ServoConstants.PRELIMIT_DNT_SHOOT.value)),
                         new InstantCommand(()->intake.init())));
 
         new ButtonEx(()->gamepadEx1.getButton(GamepadKeys.Button.A))
@@ -154,7 +143,7 @@ public class TeleOpSoloRed extends CommandOpModeEx {
         new ButtonEx(()->gamepadEx2.getButton(GamepadKeys.Button.DPAD_RIGHT)) //远射复位
                 .whenPressed(new InstantCommand(()->follower.setPose(new Pose(0,-50, follower.getPose().getHeading()))));
 
-        new ButtonEx(()->gamepadEx2.getButton(GamepadKeys.Button.X)) //开门复位
+        new ButtonEx(()->gamepadEx2.getButton(GamepadKeys.Button.DPAD_LEFT)) //开门复位
                 .whenPressed(new InstantCommand(()->follower.setPose(new Pose(58,0, follower.getPose().getHeading()))));
 
         new ButtonEx(()->gamepadEx2.getButton(GamepadKeys.Button.DPAD_DOWN)) //己方loading zone复位
@@ -168,31 +157,17 @@ public class TeleOpSoloRed extends CommandOpModeEx {
     @Override
     public void run(){
         CommandScheduler.getInstance().run();
-//        driveCore.update();
-//        turret.lock(new Pose(driveCore.getPoseEstimate().getX(), driveCore.getPoseEstimate().getY(), driveCore.getHeading()));
 
         follower.update();
         turret.lockRed(follower.getPose());
 
-//        poseUpdater.update();
-//        turret.lock(new Pose(poseUpdater.getPose().getX(), poseUpdater.getPose().getY(), poseUpdater.getPose().getHeading()));
-
-
         telemetry.addData("shooter velocity", shooter.shooterLeft.getVelocity());
         if(isFieldCentric) telemetry.addData("Field Centric", isFieldCentric);
         else telemetry.addData("Robot Centric", isFieldCentric);
-//        telemetry.addData("Current Pose X", driveCore.getPoseEstimate().getX());
-//        telemetry.addData("Current Pose Y", driveCore.getPoseEstimate().getY());
-//        telemetry.addData("Current Pose Heading", driveCore.getHeading());
 
         telemetry.addData("Current Pose X", follower.getPose().getX());
         telemetry.addData("Current Pose Y", follower.getPose().getY());
         telemetry.addData("Current Pose Heading", follower.getPose().getHeading());
-
-//        telemetry.addData("Current Pose X", poseUpdater.getPose().getX());
-//        telemetry.addData("Current Pose Y", poseUpdater.getPose().getY());
-//        telemetry.addData("Current Pose Heading", Math.toDegrees(poseUpdater.getPose().getHeading()));
-
 
         telemetry.update();
     }

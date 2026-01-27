@@ -29,23 +29,23 @@ public class Turret {
 //    private static final double TARGET_Y = -27.9487;
 
     private static final double RED_TARGET_X = 72;
-    private static final double RED_TARGET_Y = 75;
+    private static final double RED_TARGET_Y = 72;
 
     // 目标朝向（deg）
     private static final double RED_TARGET_HEADING_DEG = 30.0;
 
     // 目标“面”法向参考距离（inch）
-    private static final double RED_FACE_OFFSET = 20.0;
+    private static final double RED_FACE_OFFSET = 0;
 
 
-    private static final double BLUE_TARGET_X = 60.9487;
-    private static final double BLUE_TARGET_Y = -60.8859;
+    private static final double BLUE_TARGET_X = 72;
+    private static final double BLUE_TARGET_Y = -72;
 
     // 目标朝向（deg）
     private static final double BLUE_TARGET_HEADING_DEG = 330.0;
 
     // 目标“面”法向参考距离（inch）
-    private static final double BLUE_FACE_OFFSET = 20.0;
+    private static final double BLUE_FACE_OFFSET = 0;
 
     /* ======================================================= */
 
@@ -53,13 +53,6 @@ public class Turret {
         this.turret = hardwareMap.get(Servo.class, "turret");
     }
 
-    /**
-     * 根据机器人位姿锁定目标“面”的法向方向
-     *
-     * Pose:
-     *   x, y      -> inch
-     *   heading   -> rad （Pedro 规范）
-     */
     public void lockRed(Pose pose) {
 
         double xr = pose.getX();
